@@ -19,9 +19,9 @@
 .metaballs {
   /* Metaballs for fun through blur + contrast: 
   * https://css-tricks.com/shape-blobbing-css/ */
-  filter: blur(15px) contrast(20);
+  /* filter: blur(15px) contrast(20); */
 
-  background: #ffffff;
+  background: lightgrey;
   position: relative;
   width: 100%;
   height: 100%;
@@ -32,10 +32,20 @@
   position: absolute;
   left: -50px;
   top: -50px;
-  border-radius: 100%;
-}
+  /* border-radius: 100%; */
+  background: black;
 
-.player.red {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50px;
+}
+.text {
+  color: whitesmoke;
+  font-size: 30px;
+  letter-spacing: 2px;
+}
+/* .player.red {
   background: rgba(255, 55, 0);
 }
 .player.blue {
@@ -43,4 +53,4 @@
 }
 .player.green {
   background: rgb(10, 180, 10);
-}
+} */

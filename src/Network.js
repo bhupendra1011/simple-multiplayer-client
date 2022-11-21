@@ -1,21 +1,21 @@
-import io from 'socket.io-client';
+import io from "socket.io-client";
 
 class Network {
-  init(serverUrl, color, updateSelfId, handleStateUpdate) {
+  init(serverUrl, color, updateSelfId, handleStateUpdate,name) {
     this.socket = io.connect(serverUrl);
-    this.socket.on('connect', () => {
+    this.socket.on("connect", () => {
       // Get self ID from the connected socket and store
       updateSelfId(this.socket.id);
 
       // register for state updates from the server
-      this.socket.on('stateUpdate', handleStateUpdate);
+      this.socket.on("stateUpdate", handleStateUpdate);
 
       // tell server to create the player with a color
-      this.socket.emit('initialize', { color: color });
+      this.socket.emit("initialize", { color: color,name:name });
     });
   }
   sendPosition(positionData) {
-    this.socket.emit('positionUpdate', positionData);
+    this.socket.emit("positionUpdate", positionData);
   }
 }
 

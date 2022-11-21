@@ -1,9 +1,9 @@
-import './App.css';
-import { useState, useEffect } from 'react';
-import { useSpring, animated } from 'react-spring';
-import network from './Network';
+import "./App.css";
+import { useState, useEffect } from "react";
+import { useSpring, animated } from "react-spring";
+import network from "./Network";
 
-const serverUrl = 'https://simple-multiplayer-server.glitch.me';
+const serverUrl = "https://scandalous-faint-donut.glitch.me";
 
 function App() {
   const [boardOffset, setBoardOffset] = useState({ x: 0, y: 0 });
@@ -21,25 +21,42 @@ function App() {
     network.sendPosition({ x, y });
   };
 
+  const getInitials = (name) => {
+    const arr = name.split(" ");
+    const len = arr.length;
+    if (len > 1) {
+      return arr[0][0] + arr[len - 1][0];
+    } else {
+      return arr[0][0];
+    }
+  };
+
   useEffect(() => {
     // On mount:
     // - randomly choose a color
     // - connect to network
     const rand = Math.random();
-    const color = rand < 0.33 ? 'red' : rand < 0.66 ? 'blue' : 'green';
+    const color = rand < 0.33 ? "red" : rand < 0.66 ? "blue" : "green";
+    const name = getInitials(window.prompt("Enter User Name") || "App Builder");
     setSelfColor(color);
-    network.init(serverUrl, color, setSelfId, handleStateUpdate);
+    network.init(
+      serverUrl,
+      color,
+      setSelfId,
+      handleStateUpdate,
+      name.toUpperCase()
+    );
   }, []);
 
   // window resize handler
   const handleResize = () => {
-    setBoardOffset(offset(document.querySelector('.board')));
+    setBoardOffset(offset(document.querySelector(".board")));
   };
   useEffect(() => {
     handleResize();
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -63,6 +80,7 @@ function App() {
                 key={`player${id}`}
                 position={data.position}
                 color={data.color}
+                name={data.name}
               />
             );
           })}
@@ -76,12 +94,17 @@ function App() {
 }
 
 // A Player's position is moved using React-Spring
-function Player({ position, color = 'red' }) {
+function Player({ position, color, name }) {
+  console.log("name", name);
   const props = useSpring({
     transform: `translate3d(${position.x}px, ${position.y}px ,0)`,
     config: { mass: 1, tension: 70, friction: 10 },
   });
-  return <animated.div className={`player ${color}`} style={props} />;
+  return (
+    <animated.div className={`player`} style={props}>
+      <animated.span className="text"> {name}</animated.span>
+    </animated.div>
+  );
 }
 
 // Calculates page offset of our gameboard
