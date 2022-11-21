@@ -1,7 +1,7 @@
 import io from "socket.io-client";
 
 class Network {
-  init(serverUrl, color, updateSelfId, handleStateUpdate,name) {
+  init(serverUrl, color, updateSelfId, handleStateUpdate, name) {
     this.socket = io.connect(serverUrl);
     this.socket.on("connect", () => {
       // Get self ID from the connected socket and store
@@ -11,7 +11,7 @@ class Network {
       this.socket.on("stateUpdate", handleStateUpdate);
 
       // tell server to create the player with a color
-      this.socket.emit("initialize", { color: color,name:name });
+      this.socket.emit("initialize", { color: color, name: name });
     });
   }
   sendPosition(positionData) {

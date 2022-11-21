@@ -8,7 +8,7 @@ const serverUrl = "https://scandalous-faint-donut.glitch.me";
 function App() {
   const [boardOffset, setBoardOffset] = useState({ x: 0, y: 0 });
   const [selfPosition, setSelfPosition] = useState({ x: 250, y: 250 });
-  const [selfColor, setSelfColor] = useState(null);
+  const [selfName, setSelfName] = useState("");
   const [selfId, setSelfId] = useState(null);
   const [players, setPlayers] = useState({});
 
@@ -38,14 +38,8 @@ function App() {
     const rand = Math.random();
     const color = rand < 0.33 ? "red" : rand < 0.66 ? "blue" : "green";
     const name = getInitials(window.prompt("Enter User Name") || "App Builder");
-    setSelfColor(color);
-    network.init(
-      serverUrl,
-      color,
-      setSelfId,
-      handleStateUpdate,
-      name.toUpperCase()
-    );
+    setSelfName(name);
+    network.init(serverUrl, color, setSelfId, handleStateUpdate, name);
   }, []);
 
   // window resize handler
@@ -86,7 +80,7 @@ function App() {
           })}
 
           {/* render player separate from state updates for instant response */}
-          <Player position={selfPosition} color={selfColor} />
+          <Player position={selfPosition} name={selfName} />
         </div>
       </div>
     </div>
@@ -95,14 +89,13 @@ function App() {
 
 // A Player's position is moved using React-Spring
 function Player({ position, color, name }) {
-  console.log("name", name);
   const props = useSpring({
     transform: `translate3d(${position.x}px, ${position.y}px ,0)`,
-    config: { mass: 1, tension: 70, friction: 10 },
+    config: { mass: 1, tension: 30, friction: 10 },
   });
   return (
     <animated.div className={`player`} style={props}>
-      <animated.span className="text"> {name}</animated.span>
+      <animated.span className="text"> {name.toUpperCase()}</animated.span>
     </animated.div>
   );
 }
