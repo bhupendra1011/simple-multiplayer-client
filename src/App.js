@@ -19,6 +19,7 @@ function App() {
   const handleUpdatePosition = (x, y) => {
     setSelfPosition({ x, y });
     network.sendPosition({ x, y });
+    // check for proximity
   };
 
   const getInitials = (name) => {
@@ -38,7 +39,7 @@ function App() {
     const rand = Math.random();
     const color = rand < 0.33 ? "red" : rand < 0.66 ? "blue" : "green";
     const name = getInitials(window.prompt("Enter User Name") || "App Builder");
-    setSelfName(name);
+    setSelfName(`${name}\nMe`);
     network.init(serverUrl, color, setSelfId, handleStateUpdate, name);
   }, []);
 
@@ -93,6 +94,9 @@ function Player({ position, color, name }) {
     transform: `translate3d(${position.x}px, ${position.y}px ,0)`,
     config: { mass: 1, tension: 30, friction: 10 },
   });
+  useEffect(() => {
+    console.warn("moving");
+  }, [position]);
   return (
     <animated.div className={`player`} style={props}>
       <animated.span className="text"> {name.toUpperCase()}</animated.span>
