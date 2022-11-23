@@ -1,9 +1,12 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSpring, animated } from "react-spring";
 import network from "./Network";
+import { FiCamera, FiCameraOff, FiMic, FiMicOff, FiVideo, FiVideoOff } from 'react-icons/fi';
+import { initSDK } from "./super-sdk"
 
 const serverUrl = "https://scandalous-faint-donut.glitch.me";
+const proxmityThreshold = 100;
 
 function App() {
   const [boardOffset, setBoardOffset] = useState({ x: 0, y: 0 });
@@ -20,6 +23,33 @@ function App() {
     setSelfPosition({ x, y });
     network.sendPosition({ x, y });
     // check for proximity
+    for (let key in players) {
+      const player = players[key];
+      // not calculating distance with self
+      if (selfId !== player.id) {
+        const distance = calculateDistance(
+          x,
+          y,
+          player.position.x,
+          player.position.y
+        );
+        if (distance <= proxmityThreshold) {
+          // Users are Close Enough
+          console.log(
+            `Subscribe to User:${player.name} as Distance b/w ME and User (< 100) => ${distance}`
+          );
+        } else {
+          // Users are Far
+          console.log(
+            `Unsubscribe to User:${player.name} as Distance b/w ME and User (>100) => ${distance}`
+          );
+        }
+      }
+    }
+  };
+
+  const calculateDistance = (x1, y1, x2, y2) => {
+    return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
   };
 
   const getInitials = (name) => {
@@ -32,6 +62,8 @@ function App() {
     }
   };
 
+
+
   useEffect(() => {
     // On mount:
     // - randomly choose a color
@@ -41,6 +73,7 @@ function App() {
     const name = getInitials(window.prompt("Enter User Name") || "App Builder");
     setSelfName(`${name}\nMe`);
     network.init(serverUrl, color, setSelfId, handleStateUpdate, name);
+
   }, []);
 
   // window resize handler
@@ -57,6 +90,7 @@ function App() {
 
   return (
     <div className="app">
+      <div className="videoContainer"></div>
       <div
         className="board"
         onPointerDown={({ clientX, clientY }) => {
@@ -84,8 +118,81 @@ function App() {
           <Player position={selfPosition} name={selfName} />
         </div>
       </div>
+      <LocalUser />
     </div>
   );
+}
+
+const tracks = {
+  localVideoTrack: null,
+  localAudioTrack: null
+};
+// local user would always be shown 
+function LocalUser() {
+  const [micOn, setMicOn] = useState(true);
+  const [cameraOn, setCameraOn] = useState(true);
+  const [tracks, setTracks] = useState(null)
+  const localContainerRef = useRef();
+
+  const initLocalTracks = async () => {
+    const [audioTrack, videoTrack] = await initSDK();
+    videoTrack.play(localContainerRef.current, { fit: "cover" });
+    videoTrack.setEnabled = false;
+    //tracks.localAudioTrack = audioTrack;
+    // tracks.localVideoTrack = videoTrack;
+    setTracks({ localVideoTrack: videoTrack, localAudioTrack: audioTrack })
+    // not playing audio track for self
+  }
+  useEffect(() => {
+    initLocalTracks()
+  }, [])
+  const handleMicToggle = () => {
+    setMicOn(prevState => !prevState)
+  }
+  const handleCameraToggle = () => {
+    setCameraOn(prevState => !prevState);
+    tracks.localVideoTrack.setEnabled = false;
+  }
+  return (
+    <div className="localContainer" >
+      <div className="localVideoContainer" ref={localContainerRef}></div>
+      <div className="localControls">
+        <Controls tracks={tracks} />
+      </div>
+      <span>Local User (Me)</span>
+    </div>
+  )
+
+}
+
+function Controls(props) {
+  const { tracks } = props;
+  const [micOn, setMicOn] = useState(true);
+  const [cameraOn, setCameraOn] = useState(true);
+  const handleMicToggle = () => {
+    setMicOn(prevState => !prevState)
+  }
+  const handleCameraToggle = () => {
+
+    console.log("tracks", tracks);
+    setCameraOn(prevState => !prevState);
+    cameraOn ? tracks.localVideoTrack.setEnabled = false : tracks.localVideoTrack.setEnabled = true
+
+
+  }
+  return (
+    <>
+      <i class="icon" onClick={handleMicToggle}>
+        {micOn ? <FiMic /> : <FiMicOff color="red" />}
+      </i>
+      <i class="icon" onClick={handleCameraToggle}>
+        {cameraOn ? <FiCamera /> : <FiCameraOff color="red" />}
+      </i>
+    </>
+
+  )
+
+
 }
 
 // A Player's position is moved using React-Spring
